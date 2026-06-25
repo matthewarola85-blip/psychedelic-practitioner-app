@@ -19,55 +19,76 @@ router.post('/generate', async (req, res) => {
   try {
     const prompt = `You are an expert clinical resource for psychedelic-assisted therapy (PAT). You synthesize information from published research including Johns Hopkins, MAPS, Beckley Foundation, Imperial College London, Usona Institute, and established pharmacology literature. You are not limited to FDA-approved indications — you draw from the full body of peer-reviewed research and harm reduction literature.
 
-A practitioner is requesting a detailed treatment intelligence report for a client. Here are the details:
+A practitioner is requesting a detailed treatment intelligence report. Here are the details:
 
 TREATMENT GOAL: ${treatment_goal}
 
 SELECTED PSYCHEDELIC: ${psychedelic}
 
 CURRENT MEDICATIONS:
-${medications.map(m => `- ${m.name} ${m.dosage || ''}`).join('\n')}
+${medications.length > 0 ? medications.map(m => `- ${m.name}${m.dosage ? ` ${m.dosage}` : ''}`).join('\n') : '- No medications listed'}
 
-Generate a comprehensive Treatment Intelligence Report with the following sections:
+You MUST format your response using EXACTLY these section headers, in this order, with nothing before the first header:
 
-1. DRUG INTERACTIONS (HIGH PRIORITY)
-For each medication listed, provide:
-- Interaction severity: CONTRAINDICATED / HIGH CAUTION / CAUTION / MONITOR / LOW RISK
+## DRUG INTERACTIONS
+
+For each medication listed, provide a structured entry:
+- Medication name and dose
+- Severity: CONTRAINDICATED / HIGH CAUTION / CAUTION / MONITOR / LOW RISK
 - Mechanism of interaction
 - Clinical recommendation
-Flag any CONTRAINDICATED combinations prominently at the top.
 
-2. RECOMMENDED PROTOCOL
-- Dosing range for ${psychedelic} based on the treatment goal
-- Session structure and number of recommended sessions
-- Preparation approach
-- Integration recommendations
+If any medications are CONTRAINDICATED, add a prominent warning at the top of this section.
 
-3. EVIDENCE BASE
-- What published research says about ${psychedelic} for this treatment goal
-- Key studies and their findings
-- Strength of current evidence
+## RECOMMENDED PROTOCOL
 
-4. BENEFITS
-- Evidence-based benefits specific to this treatment goal
-- Experiential and therapeutic mechanisms
+Include all of the following:
+- Recommended dose range for ${psychedelic} specific to the treatment goal
+- Session structure (number of sessions, duration, spacing)
+- Preparation phase (number of prep sessions, key focus areas, set and setting guidance)
+- Medicine session guidance (mindset, environment, music, support)
+- Integration phase (recommended integration sessions, timeline, key themes to explore)
+- Practitioner role during session
 
-5. RISKS & CONTRAINDICATIONS
-- Medical risks
+## EVIDENCE BASE
+
+Include:
+- Summary of published research on ${psychedelic} for this treatment goal
+- Key studies and their outcomes (Johns Hopkins, MAPS, Imperial College, etc.)
+- Current strength of evidence (strong / moderate / emerging / limited)
+- Relevant mechanisms of action
+
+## BENEFITS
+
+Include:
+- Evidence-based therapeutic benefits specific to this treatment goal
+- Reported experiential benefits
+- Neurobiological mechanisms behind therapeutic effects
+- Expected timeline for benefits
+
+## RISKS & CONTRAINDICATIONS
+
+Include:
+- Medical risks and contraindications
 - Psychological risks
 - Absolute contraindications
 - Relative contraindications
+- Risk mitigation strategies
 
-6. PRACTITIONER NOTES
-- Key clinical considerations for this specific case
-- Monitoring recommendations
-- Red flags to watch for
+## PRACTITIONER NOTES
 
-Format your response clearly with headers for each section. Be thorough, evidence-based, and clinically useful. This report is for a trained practitioner, not a patient.`;
+Include:
+- Key clinical considerations specific to this case
+- What to monitor before, during, and after the session
+- Red flags requiring intervention
+- Recommended screening tools
+- Follow-up care recommendations
+
+Be thorough, evidence-based, and clinically detailed. This report is for a trained practitioner, not a patient. Do not truncate any section.`;
 
     const message = await anthropic.messages.create({
       model: 'claude-sonnet-4-6',
-      max_tokens: 4000,
+      max_tokens: 8000,
       messages: [
         { role: 'user', content: prompt }
       ]
@@ -75,7 +96,6 @@ Format your response clearly with headers for each section. Be thorough, evidenc
 
     const reportText = message.content[0].text;
 
-    // Save to database
     const result = await pool.query(
       `INSERT INTO treatment_reports (client_id, treatment_goal, psychedelic, medications, report, created_at)
        VALUES ($1, $2, $3, $4, $5, NOW()) RETURNING *`,

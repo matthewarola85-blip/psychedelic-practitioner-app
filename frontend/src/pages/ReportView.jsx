@@ -55,44 +55,47 @@ export default function ReportView() {
       )}
 
       <div style={styles.reportBody}>
-        {sections.map((section, i) => (
-          <div key={i} style={getSectionStyle(section.title)}>
-            <h2 style={getSectionTitleStyle(section.title)}>{section.title}</h2>
-            <div style={styles.sectionContent}>
-              {section.content.split('\n').map((line, j) => {
-                if (!line.trim()) return null
-
-                const cleaned = line
-                  .replace(/^#{1,3}\s*/, '')
-                  .replace(/\*\*(.*?)\*\*/g, '$1')
-                  .replace(/\*(.*?)\*/g, '$1')
-                  .trim()
-
-                if (!cleaned) return null
-
-                const isContraindicated = cleaned.toLowerCase().includes('contraindicated')
-                const isHighCaution = cleaned.toLowerCase().includes('high caution')
-                const isBullet = line.trim().startsWith('-') || line.trim().startsWith('•')
-                const isNumbered = /^\d+\./.test(line.trim())
-                const isSubHeader = cleaned.endsWith(':') && cleaned.length < 60
-
-                if (isContraindicated) {
-                  return <p key={j} style={styles.contraLine}>{cleaned}</p>
-                }
-                if (isHighCaution) {
-                  return <p key={j} style={styles.cautionLine}>{cleaned}</p>
-                }
-                if (isSubHeader) {
-                  return <p key={j} style={styles.subHeader}>{cleaned}</p>
-                }
-                if (isBullet || isNumbered) {
-                  return <p key={j} style={styles.bulletLine}>{cleaned}</p>
-                }
-                return <p key={j} style={styles.contentLine}>{cleaned}</p>
-              })}
-            </div>
+        {sections.length === 0 ? (
+          <div style={styles.rawReport}>
+            {report.report.split('\n').map((line, i) => (
+              <p key={i} style={styles.contentLine}>{line}</p>
+            ))}
           </div>
-        ))}
+        ) : (
+          sections.map((section, i) => (
+            <div key={i} style={getSectionStyle(section.title)}>
+              <h2 style={getSectionTitleStyle(section.title)}>{section.title}</h2>
+              <div style={styles.sectionContent}>
+                {section.content.split('\n').map((line, j) => {
+                  if (!line.trim()) return null
+
+                  const cleaned = line
+                    .replace(/^#{1,4}\s*/, '')
+                    .replace(/\*\*(.*?)\*\*/g, '$1')
+                    .replace(/\*(.*?)\*/g, '$1')
+                    .trim()
+
+                  if (!cleaned) return null
+
+                  const lower = cleaned.toLowerCase()
+                  const isContraindicated = lower.includes('contraindicated')
+                  const isHighCaution = lower.includes('high caution')
+                  const isCaution = lower.includes('⚠') || lower.includes('caution:')
+                  const isBullet = line.trim().startsWith('-') || line.trim().startsWith('•')
+                  const isNumbered = /^\d+\./.test(line.trim())
+                  const isSubHeader = cleaned.endsWith(':') && cleaned.length < 80 && !isBullet
+
+                  if (isContraindicated) return <p key={j} style={styles.contraLine}>{cleaned}</p>
+                  if (isHighCaution) return <p key={j} style={styles.cautionLine}>{cleaned}</p>
+                  if (isCaution) return <p key={j} style={styles.cautionLine}>{cleaned}</p>
+                  if (isSubHeader) return <p key={j} style={styles.subHeader}>{cleaned}</p>
+                  if (isBullet || isNumbered) return <p key={j} style={styles.bulletLine}>{cleaned}</p>
+                  return <p key={j} style={styles.contentLine}>{cleaned}</p>
+                })}
+              </div>
+            </div>
+          ))
+        )}
       </div>
 
       <div style={styles.disclaimer}>
@@ -112,6 +115,7 @@ function parseReport(text) {
     'RECOMMENDED PROTOCOL',
     'EVIDENCE BASE',
     'BENEFITS',
+    'RISKS & CONTRAINDICATIONS',
     'RISKS',
     'PRACTITIONER NOTES',
   ]
@@ -122,8 +126,8 @@ function parseReport(text) {
 
   const lines = text.split('\n')
   for (const line of lines) {
-    const upperLine = line.toUpperCase()
-    const matchedHeader = sectionHeaders.find(h => upperLine.includes(h))
+    const upperLine = line.toUpperCase().replace(/^#+\s*/, '').trim()
+    const matchedHeader = sectionHeaders.find(h => upperLine === h || upperLine.startsWith(h))
     if (matchedHeader) {
       if (currentSection) {
         sections.push({ title: currentSection, content: currentContent.join('\n') })
@@ -149,9 +153,9 @@ function getSectionStyle(title) {
     padding: '28px',
     marginBottom: '20px',
   }
-  if (title === 'DRUG INTERACTIONS') {
-    return { ...base, borderColor: 'rgba(239,68,68,0.3)' }
-  }
+  if (title === 'DRUG INTERACTIONS') return { ...base, borderColor: 'rgba(239,68,68,0.3)' }
+  if (title === 'RECOMMENDED PROTOCOL') return { ...base, borderColor: 'rgba(16,185,129,0.2)' }
+  if (title === 'RISKS & CONTRAINDICATIONS' || title === 'RISKS') return { ...base, borderColor: 'rgba(245,158,11,0.2)' }
   return base
 }
 
@@ -161,14 +165,13 @@ function getSectionTitleStyle(title) {
     fontWeight: '700',
     textTransform: 'uppercase',
     letterSpacing: '1px',
-    marginBottom: '16px',
-    margin: '0 0 16px 0',
+    margin: '0 0 20px 0',
   }
   if (title === 'DRUG INTERACTIONS') return { ...base, color: '#ef4444' }
   if (title === 'RECOMMENDED PROTOCOL') return { ...base, color: '#10b981' }
   if (title === 'EVIDENCE BASE') return { ...base, color: '#3b82f6' }
   if (title === 'BENEFITS') return { ...base, color: '#8b5cf6' }
-  if (title === 'RISKS') return { ...base, color: '#f59e0b' }
+  if (title === 'RISKS & CONTRAINDICATIONS' || title === 'RISKS') return { ...base, color: '#f59e0b' }
   if (title === 'PRACTITIONER NOTES') return { ...base, color: '#9ca3af' }
   return { ...base, color: '#ffffff' }
 }
@@ -268,6 +271,12 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
   },
+  rawReport: {
+    background: '#13111a',
+    border: '1px solid rgba(255,255,255,0.06)',
+    borderRadius: '12px',
+    padding: '28px',
+  },
   sectionContent: {
     display: 'flex',
     flexDirection: 'column',
@@ -284,7 +293,7 @@ const styles = {
     fontWeight: '600',
     color: '#e8e6f0',
     lineHeight: '1.7',
-    margin: '8px 0 4px 0',
+    margin: '12px 0 4px 0',
   },
   bulletLine: {
     fontSize: '14px',
@@ -300,7 +309,7 @@ const styles = {
     lineHeight: '1.7',
     margin: 0,
     background: 'rgba(239,68,68,0.08)',
-    padding: '8px 12px',
+    padding: '10px 14px',
     borderRadius: '6px',
     borderLeft: '3px solid #ef4444',
   },
@@ -310,7 +319,7 @@ const styles = {
     lineHeight: '1.7',
     margin: 0,
     background: 'rgba(245,158,11,0.08)',
-    padding: '8px 12px',
+    padding: '10px 14px',
     borderRadius: '6px',
     borderLeft: '3px solid #f59e0b',
   },
