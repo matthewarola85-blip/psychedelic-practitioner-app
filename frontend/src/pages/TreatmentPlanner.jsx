@@ -30,10 +30,16 @@ export default function TreatmentPlanner() {
   const [generating, setGenerating] = useState(false)
   const [reports, setReports] = useState([])
   const [showDropdown, setShowDropdown] = useState(false)
+  const [editingGoal, setEditingGoal] = useState(false)
+  const [goalDraft, setGoalDraft] = useState('')
+  const [savingGoal, setSavingGoal] = useState(false)
 
   useEffect(() => {
     axios.get(`${API}/api/clients/${id}`)
-      .then(res => setClient(res.data))
+      .then(res => {
+        setClient(res.data)
+        setGoalDraft(res.data.treatment_goal || '')
+      })
       .catch(err => console.error(err))
 
     axios.get(`${API}/api/treatment/client/${id}`)
@@ -52,18 +58,14 @@ export default function TreatmentPlanner() {
       setShowDropdown(true)
       try {
         const res = await axios.get(
-          `https://rxnav.nlm.nih.gov/REST/drugs.json?name=${encodeURIComponent(medSearch)}`
+          `https://clinicaltables.nlm.nih.gov/api/rxterms/v3/search?terms=${encodeURIComponent(medSearch)}&ef=RXCUIS&maxList=10`
         )
-        const groups = res.data?.drugGroup?.conceptGroup || []
-        const drugs = []
-        groups.forEach(group => {
-          if (group.conceptProperties) {
-            group.conceptProperties.forEach(drug => {
-              drugs.push({ name: drug.name, rxcui: drug.rxcui })
-            })
-          }
-        })
-        setMedResults(drugs.slice(0, 8))
+        const names = res.data[1] || []
+        const drugs = names.map((name, i) => ({
+          name: name,
+          rxcui: `nlm-${i}-${Date.now()}`
+        }))
+        setMedResults(drugs)
       } catch (err) {
         console.error(err)
         setMedResults([])
@@ -75,7 +77,7 @@ export default function TreatmentPlanner() {
   }, [medSearch])
 
   const addMedication = (drug) => {
-    if (medications.find(m => m.rxcui === drug.rxcui)) return
+    if (medications.find(m => m.name === drug.name)) return
     setMedications([...medications, { name: drug.name, rxcui: drug.rxcui, dosage: '' }])
     setMedSearch('')
     setMedResults([])
@@ -97,6 +99,23 @@ export default function TreatmentPlanner() {
 
   const updateDosage = (rxcui, dosage) => {
     setMedications(medications.map(m => m.rxcui === rxcui ? { ...m, dosage } : m))
+  }
+
+  const saveGoal = async () => {
+    setSavingGoal(true)
+    try {
+      const res = await axios.put(`${API}/api/clients/${id}`, {
+        ...client,
+        treatment_goal: goalDraft
+      })
+      setClient(res.data)
+      setEditingGoal(false)
+    } catch (err) {
+      console.error(err)
+      alert('Failed to save treatment goal.')
+    } finally {
+      setSavingGoal(false)
+    }
   }
 
   const generateReport = async () => {
@@ -138,10 +157,48 @@ export default function TreatmentPlanner() {
 
           {/* Treatment Goal */}
           <div style={styles.section}>
-            <h2 style={styles.sectionTitle}>Treatment Goal</h2>
-            <div style={styles.goalBox}>
-              {client.treatment_goal || 'No treatment goal set'}
+            <div style={styles.sectionHeaderRow}>
+              <h2 style={styles.sectionTitle}>Treatment Goal</h2>
+              {!editingGoal && (
+                <button style={styles.editBtn} onClick={() => setEditingGoal(true)}>
+                  Edit
+                </button>
+              )}
             </div>
+
+            {editingGoal ? (
+              <div>
+                <textarea
+                  style={styles.goalTextarea}
+                  value={goalDraft}
+                  onChange={e => setGoalDraft(e.target.value)}
+                  rows={4}
+                  placeholder="What is the client hoping to achieve?"
+                />
+                <div style={styles.goalActions}>
+                  <button
+                    style={styles.cancelBtn}
+                    onClick={() => {
+                      setEditingGoal(false)
+                      setGoalDraft(client.treatment_goal || '')
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    style={savingGoal ? styles.saveBtnDisabled : styles.saveBtn}
+                    onClick={saveGoal}
+                    disabled={savingGoal}
+                  >
+                    {savingGoal ? 'Saving...' : 'Save Goal'}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div style={styles.goalBox}>
+                {client.treatment_goal || 'No treatment goal set'}
+              </div>
+            )}
           </div>
 
           {/* Psychedelic Selection */}
@@ -164,7 +221,7 @@ export default function TreatmentPlanner() {
           <div style={styles.section}>
             <h2 style={styles.sectionTitle}>Current Medications</h2>
             <p style={styles.sectionHint}>
-              Search by name or type any medication and click "Add manually"
+              Search by name or type any medication and click Add
             </p>
 
             <div style={styles.searchRow}>
@@ -330,11 +387,17 @@ const styles = {
     borderRadius: '12px',
     padding: '24px',
   },
+  sectionHeaderRow: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '16px',
+  },
   sectionTitle: {
     fontSize: '13px',
     fontWeight: '700',
     color: '#ffffff',
-    margin: '0 0 16px 0',
+    margin: '0',
     textTransform: 'uppercase',
     letterSpacing: '0.5px',
   },
@@ -342,6 +405,15 @@ const styles = {
     fontSize: '13px',
     color: '#6b7280',
     margin: '-8px 0 16px 0',
+  },
+  editBtn: {
+    background: 'transparent',
+    border: '1px solid rgba(255,255,255,0.1)',
+    color: '#9ca3af',
+    padding: '4px 12px',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    fontSize: '12px',
   },
   goalBox: {
     background: 'rgba(139,92,246,0.08)',
@@ -351,6 +423,54 @@ const styles = {
     fontSize: '15px',
     color: '#e8e6f0',
     lineHeight: '1.5',
+  },
+  goalTextarea: {
+    background: 'rgba(255,255,255,0.05)',
+    border: '1px solid rgba(255,255,255,0.1)',
+    borderRadius: '8px',
+    padding: '12px 16px',
+    color: '#ffffff',
+    fontSize: '15px',
+    outline: 'none',
+    width: '100%',
+    boxSizing: 'border-box',
+    resize: 'vertical',
+    fontFamily: "'Inter', -apple-system, sans-serif",
+    lineHeight: '1.5',
+  },
+  goalActions: {
+    display: 'flex',
+    justifyContent: 'flex-end',
+    gap: '10px',
+    marginTop: '12px',
+  },
+  cancelBtn: {
+    background: 'transparent',
+    border: '1px solid rgba(255,255,255,0.1)',
+    color: '#9ca3af',
+    padding: '8px 16px',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    fontSize: '13px',
+  },
+  saveBtn: {
+    background: '#8b5cf6',
+    border: 'none',
+    color: '#ffffff',
+    padding: '8px 16px',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    fontSize: '13px',
+    fontWeight: '600',
+  },
+  saveBtnDisabled: {
+    background: '#4b5563',
+    border: 'none',
+    color: '#9ca3af',
+    padding: '8px 16px',
+    borderRadius: '8px',
+    cursor: 'not-allowed',
+    fontSize: '13px',
   },
   psychedelicGrid: {
     display: 'flex',

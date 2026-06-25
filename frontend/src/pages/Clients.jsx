@@ -8,13 +8,33 @@ export default function Clients() {
   const navigate = useNavigate()
   const [clients, setClients] = useState([])
   const [loading, setLoading] = useState(true)
+  const [deletingId, setDeletingId] = useState(null)
 
   useEffect(() => {
+    fetchClients()
+  }, [])
+
+  const fetchClients = () => {
     axios.get(`${API}/api/clients`)
       .then(res => setClients(res.data))
       .catch(err => console.error(err))
       .finally(() => setLoading(false))
-  }, [])
+  }
+
+  const deleteClient = async (e, id) => {
+    e.stopPropagation()
+    if (!window.confirm('Delete this client and all their reports? This cannot be undone.')) return
+    setDeletingId(id)
+    try {
+      await axios.delete(`${API}/api/clients/${id}`)
+      setClients(clients.filter(c => c.id !== id))
+    } catch (err) {
+      console.error(err)
+      alert('Failed to delete client.')
+    } finally {
+      setDeletingId(null)
+    }
+  }
 
   return (
     <div style={styles.container}>
@@ -59,9 +79,19 @@ export default function Clients() {
                   </div>
                 )}
               </div>
-              <div style={styles.cardAction}>
-                <button style={styles.planBtn}>
+              <div style={styles.cardActions}>
+                <button
+                  style={styles.planBtn}
+                  onClick={e => { e.stopPropagation(); navigate(`/clients/${client.id}/treatment`) }}
+                >
                   Generate Report →
+                </button>
+                <button
+                  style={styles.deleteBtn}
+                  onClick={e => deleteClient(e, client.id)}
+                  disabled={deletingId === client.id}
+                >
+                  {deletingId === client.id ? '...' : 'Delete'}
                 </button>
               </div>
             </div>
@@ -191,13 +221,26 @@ const styles = {
     fontSize: '12px',
     color: '#6b7280',
   },
-  cardAction: {
+  cardActions: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '8px',
     flexShrink: 0,
   },
   planBtn: {
     background: 'rgba(139,92,246,0.15)',
     border: '1px solid rgba(139,92,246,0.3)',
     color: '#a78bfa',
+    padding: '8px 16px',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    fontSize: '13px',
+    fontWeight: '500',
+  },
+  deleteBtn: {
+    background: 'rgba(239,68,68,0.1)',
+    border: '1px solid rgba(239,68,68,0.2)',
+    color: '#f87171',
     padding: '8px 16px',
     borderRadius: '8px',
     cursor: 'pointer',
