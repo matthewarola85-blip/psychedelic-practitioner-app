@@ -33,6 +33,13 @@ export default function TreatmentPlanner() {
   const [editingGoal, setEditingGoal] = useState(false)
   const [goalDraft, setGoalDraft] = useState('')
   const [savingGoal, setSavingGoal] = useState(false)
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768)
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
   useEffect(() => {
     axios.get(`${API}/api/clients/${id}`)
@@ -143,16 +150,16 @@ export default function TreatmentPlanner() {
   if (!client) return <div style={styles.loading}>Loading...</div>
 
   return (
-    <div style={styles.container}>
+    <div style={{ ...styles.container, padding: isMobile ? '20px' : '40px' }}>
       <div style={styles.header}>
         <button style={styles.backBtn} onClick={() => navigate('/clients')}>← Back</button>
         <div>
-          <h1 style={styles.title}>{client.name}</h1>
+          <h1 style={{ ...styles.title, fontSize: isMobile ? '22px' : '28px' }}>{client.name}</h1>
           <p style={styles.subtitle}>Treatment Intelligence Planner</p>
         </div>
       </div>
 
-      <div style={styles.layout}>
+      <div style={{ ...styles.layout, gridTemplateColumns: isMobile ? '1fr' : '1fr 320px' }}>
         <div style={styles.formCol}>
 
           {/* Treatment Goal */}
@@ -229,7 +236,7 @@ export default function TreatmentPlanner() {
                 <input
                   style={styles.searchInput}
                   type="text"
-                  placeholder="Search medications (e.g. sertraline, lithium...)"
+                  placeholder="Search medications..."
                   value={medSearch}
                   onChange={e => setMedSearch(e.target.value)}
                   onKeyDown={e => { if (e.key === 'Enter') addManual() }}
@@ -270,9 +277,9 @@ export default function TreatmentPlanner() {
                   <div key={med.rxcui} style={styles.medItem}>
                     <div style={styles.medName}>{med.name}</div>
                     <input
-                      style={styles.dosageInput}
+                      style={{ ...styles.dosageInput, width: isMobile ? '120px' : '180px' }}
                       type="text"
-                      placeholder="Dosage (e.g. 100mg daily)"
+                      placeholder="Dosage"
                       value={med.dosage}
                       onChange={e => updateDosage(med.rxcui, e.target.value)}
                     />
@@ -299,7 +306,7 @@ export default function TreatmentPlanner() {
 
           {generating && (
             <p style={styles.generatingHint}>
-              Analyzing drug interactions, protocols, and evidence base. This takes 10–20 seconds...
+              Analyzing interactions, protocols, and evidence. Takes 10–20 seconds...
             </p>
           )}
         </div>
@@ -373,19 +380,19 @@ const styles = {
   layout: {
     display: 'grid',
     gridTemplateColumns: '1fr 320px',
-    gap: '32px',
+    gap: '24px',
     alignItems: 'start',
   },
   formCol: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '28px',
+    gap: '24px',
   },
   section: {
     background: '#13111a',
     border: '1px solid rgba(255,255,255,0.06)',
     borderRadius: '12px',
-    padding: '24px',
+    padding: '20px',
   },
   sectionHeaderRow: {
     display: 'flex',
@@ -397,7 +404,7 @@ const styles = {
     fontSize: '13px',
     fontWeight: '700',
     color: '#ffffff',
-    margin: '0',
+    margin: '0 0 16px 0',
     textTransform: 'uppercase',
     letterSpacing: '0.5px',
   },
@@ -475,13 +482,13 @@ const styles = {
   psychedelicGrid: {
     display: 'flex',
     flexWrap: 'wrap',
-    gap: '10px',
+    gap: '8px',
   },
   psychedelicBtn: {
     background: 'rgba(255,255,255,0.05)',
     border: '1px solid rgba(255,255,255,0.1)',
     color: '#9ca3af',
-    padding: '8px 16px',
+    padding: '7px 12px',
     borderRadius: '8px',
     cursor: 'pointer',
     fontSize: '13px',
@@ -491,7 +498,7 @@ const styles = {
     background: 'rgba(139,92,246,0.2)',
     border: '1px solid rgba(139,92,246,0.5)',
     color: '#a78bfa',
-    padding: '8px 16px',
+    padding: '7px 12px',
     borderRadius: '8px',
     cursor: 'pointer',
     fontSize: '13px',
@@ -521,7 +528,7 @@ const styles = {
     background: 'rgba(139,92,246,0.2)',
     border: '1px solid rgba(139,92,246,0.4)',
     color: '#a78bfa',
-    padding: '12px 18px',
+    padding: '12px 16px',
     borderRadius: '8px',
     cursor: 'pointer',
     fontSize: '14px',
@@ -568,16 +575,19 @@ const styles = {
   medItem: {
     display: 'flex',
     alignItems: 'center',
-    gap: '12px',
+    gap: '8px',
     background: 'rgba(255,255,255,0.03)',
     borderRadius: '8px',
-    padding: '10px 14px',
+    padding: '10px 12px',
   },
   medName: {
     flex: 1,
-    fontSize: '14px',
+    fontSize: '13px',
     color: '#ffffff',
     fontWeight: '500',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
   },
   dosageInput: {
     background: 'rgba(255,255,255,0.05)',
@@ -596,6 +606,7 @@ const styles = {
     cursor: 'pointer',
     fontSize: '14px',
     padding: '4px',
+    flexShrink: 0,
   },
   generateBtn: {
     background: '#8b5cf6',
@@ -604,7 +615,7 @@ const styles = {
     padding: '16px 32px',
     borderRadius: '10px',
     cursor: 'pointer',
-    fontSize: '16px',
+    fontSize: '15px',
     fontWeight: '700',
     width: '100%',
     letterSpacing: '-0.2px',
@@ -616,7 +627,7 @@ const styles = {
     padding: '16px 32px',
     borderRadius: '10px',
     cursor: 'not-allowed',
-    fontSize: '16px',
+    fontSize: '15px',
     fontWeight: '700',
     width: '100%',
   },
@@ -630,7 +641,7 @@ const styles = {
     background: '#13111a',
     border: '1px solid rgba(255,255,255,0.06)',
     borderRadius: '12px',
-    padding: '24px',
+    padding: '20px',
   },
   noReports: {
     fontSize: '13px',
