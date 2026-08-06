@@ -1,14 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const { Pool } = require('pg');
-const { clerkClient } = require('@clerk/clerk-sdk-node');
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false }
 });
 
-// Middleware to get clerk user id from header
 const getUserId = (req) => {
   return req.headers['x-user-id'];
 };
