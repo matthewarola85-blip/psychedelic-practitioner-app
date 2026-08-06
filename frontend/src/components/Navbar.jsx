@@ -1,33 +1,61 @@
 import { useNavigate, useLocation } from 'react-router-dom'
 import { UserButton } from '@clerk/clerk-react'
+import { useState, useEffect } from 'react'
 
 export default function Navbar() {
   const navigate = useNavigate()
   const location = useLocation()
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768)
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
   const isActive = (path) => location.pathname === path
 
   return (
-    <nav style={styles.nav}>
+    <nav style={{ ...styles.nav, padding: isMobile ? '14px 20px' : '16px 40px' }}>
       <div style={styles.brand} onClick={() => navigate('/dashboard')}>
         <span style={styles.logo}>⬡</span>
         <span style={styles.title}>Vessel</span>
       </div>
-      <div style={styles.links}>
-        <button
-          style={isActive('/dashboard') ? styles.linkActive : styles.link}
-          onClick={() => navigate('/dashboard')}
-        >
-          Dashboard
-        </button>
-        <button
-          style={isActive('/clients') ? styles.linkActive : styles.link}
-          onClick={() => navigate('/clients')}
-        >
-          Clients
-        </button>
-      </div>
+
+      {!isMobile && (
+        <div style={styles.links}>
+          <button
+            style={isActive('/dashboard') ? styles.linkActive : styles.link}
+            onClick={() => navigate('/dashboard')}
+          >
+            Dashboard
+          </button>
+          <button
+            style={isActive('/clients') ? styles.linkActive : styles.link}
+            onClick={() => navigate('/clients')}
+          >
+            Clients
+          </button>
+        </div>
+      )}
+
       <div style={styles.userSection}>
+        {isMobile && (
+          <div style={styles.mobileLinks}>
+            <button
+              style={isActive('/dashboard') ? styles.mobileLinkActive : styles.mobileLink}
+              onClick={() => navigate('/dashboard')}
+            >
+              Home
+            </button>
+            <button
+              style={isActive('/clients') ? styles.mobileLinkActive : styles.mobileLink}
+              onClick={() => navigate('/clients')}
+            >
+              Clients
+            </button>
+          </div>
+        )}
         <UserButton afterSignOutUrl="/" />
       </div>
     </nav>
@@ -89,5 +117,30 @@ const styles = {
   userSection: {
     display: 'flex',
     alignItems: 'center',
+    gap: '12px',
+  },
+  mobileLinks: {
+    display: 'flex',
+    gap: '4px',
+  },
+  mobileLink: {
+    background: 'transparent',
+    border: 'none',
+    color: '#9ca3af',
+    padding: '6px 10px',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    fontSize: '13px',
+    fontWeight: '500',
+  },
+  mobileLinkActive: {
+    background: 'rgba(139,92,246,0.15)',
+    border: 'none',
+    color: '#a78bfa',
+    padding: '6px 10px',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    fontSize: '13px',
+    fontWeight: '500',
   },
 }
