@@ -1,5 +1,7 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
-import { SignedIn, SignedOut, RedirectToSignIn } from '@clerk/clerk-react'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { SignedIn, SignedOut, RedirectToSignIn, useUser } from '@clerk/clerk-react'
+import { useEffect } from 'react'
+import axios from 'axios'
 import Dashboard from './pages/Dashboard'
 import Clients from './pages/Clients'
 import NewClient from './pages/NewClient'
@@ -9,81 +11,44 @@ import Landing from './pages/Landing'
 import Navbar from './components/Navbar'
 import './App.css'
 
+function AuthenticatedApp({ children }) {
+  const { user } = useUser()
+
+  useEffect(() => {
+    if (user) {
+      axios.defaults.headers.common['x-user-id'] = user.id
+    }
+  }, [user])
+
+  return children
+}
+
+function ProtectedRoute({ children }) {
+  return (
+    <>
+      <SignedIn>
+        <AuthenticatedApp>
+          <Navbar />
+          {children}
+        </AuthenticatedApp>
+      </SignedIn>
+      <SignedOut>
+        <RedirectToSignIn />
+      </SignedOut>
+    </>
+  )
+}
+
 function App() {
   return (
     <Router>
       <Routes>
         <Route path="/" element={<Landing />} />
-        <Route
-          path="/dashboard"
-          element={
-            <>
-              <SignedIn>
-                <Navbar />
-                <Dashboard />
-              </SignedIn>
-              <SignedOut>
-                <RedirectToSignIn />
-              </SignedOut>
-            </>
-          }
-        />
-        <Route
-          path="/clients"
-          element={
-            <>
-              <SignedIn>
-                <Navbar />
-                <Clients />
-              </SignedIn>
-              <SignedOut>
-                <RedirectToSignIn />
-              </SignedOut>
-            </>
-          }
-        />
-        <Route
-          path="/clients/new"
-          element={
-            <>
-              <SignedIn>
-                <Navbar />
-                <NewClient />
-              </SignedIn>
-              <SignedOut>
-                <RedirectToSignIn />
-              </SignedOut>
-            </>
-          }
-        />
-        <Route
-          path="/clients/:id/treatment"
-          element={
-            <>
-              <SignedIn>
-                <Navbar />
-                <TreatmentPlanner />
-              </SignedIn>
-              <SignedOut>
-                <RedirectToSignIn />
-              </SignedOut>
-            </>
-          }
-        />
-        <Route
-          path="/reports/:id"
-          element={
-            <>
-              <SignedIn>
-                <Navbar />
-                <ReportView />
-              </SignedIn>
-              <SignedOut>
-                <RedirectToSignIn />
-              </SignedOut>
-            </>
-          }
-        />
+        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+        <Route path="/clients" element={<ProtectedRoute><Clients /></ProtectedRoute>} />
+        <Route path="/clients/new" element={<ProtectedRoute><NewClient /></ProtectedRoute>} />
+        <Route path="/clients/:id/treatment" element={<ProtectedRoute><TreatmentPlanner /></ProtectedRoute>} />
+        <Route path="/reports/:id" element={<ProtectedRoute><ReportView /></ProtectedRoute>} />
       </Routes>
     </Router>
   )
