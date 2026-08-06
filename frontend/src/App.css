@@ -9,3 +9,41 @@ body {
   color: #e8e6f0;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
+
+/* Mobile responsive overrides */
+@media (max-width: 768px) {
+  /* Dashboard */
+  .stats-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Treatment planner layout */
+  .treatment-layout {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Feature grid on landing */
+  .feature-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Hero section */
+  .hero-section {
+    flex-direction: column !important;
+    padding: 40px 20px !important;
+  }
+
+  .hero-visual {
+    display: none !important;
+  }
+
+  /* General padding reduction */
+  .page-container {
+    padding: 20px !important;
+  }
+
+  /* Nav */
+  .nav-links {
+    display: none !important;
+  }
+}

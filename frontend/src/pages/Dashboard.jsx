@@ -18,11 +18,15 @@ export default function Dashboard() {
       .finally(() => setLoading(false))
   }, [])
 
+  const isMobile = window.innerWidth <= 768
+
   return (
-    <div style={styles.container}>
+    <div style={{ ...styles.container, padding: isMobile ? '20px' : '40px' }}>
       <div style={styles.header}>
         <div>
-          <h1 style={styles.title}>Welcome back{user?.firstName ? `, ${user.firstName}` : ''}</h1>
+          <h1 style={{ ...styles.title, fontSize: isMobile ? '22px' : '28px' }}>
+            Welcome back{user?.firstName ? `, ${user.firstName}` : ''}
+          </h1>
           <p style={styles.subtitle}>Your practice at a glance</p>
         </div>
         <button style={styles.newClientBtn} onClick={() => navigate('/clients/new')}>
@@ -31,7 +35,10 @@ export default function Dashboard() {
       </div>
 
       {/* Stats */}
-      <div style={styles.statsGrid}>
+      <div style={{
+        ...styles.statsGrid,
+        gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)'
+      }}>
         <div style={styles.statCard}>
           <div style={styles.statNumber}>{clients.length}</div>
           <div style={styles.statLabel}>Active Clients</div>
@@ -102,6 +109,7 @@ const styles = {
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     marginBottom: '36px',
+    gap: '12px',
   },
   title: {
     fontSize: '28px',
@@ -119,26 +127,27 @@ const styles = {
     background: '#8b5cf6',
     border: 'none',
     color: '#ffffff',
-    padding: '10px 22px',
+    padding: '10px 16px',
     borderRadius: '8px',
     cursor: 'pointer',
-    fontSize: '14px',
+    fontSize: '13px',
     fontWeight: '600',
+    flexShrink: 0,
   },
   statsGrid: {
     display: 'grid',
     gridTemplateColumns: 'repeat(3, 1fr)',
-    gap: '20px',
-    marginBottom: '40px',
+    gap: '16px',
+    marginBottom: '32px',
   },
   statCard: {
     background: '#13111a',
     border: '1px solid rgba(255,255,255,0.06)',
     borderRadius: '12px',
-    padding: '24px',
+    padding: '20px',
   },
   statNumber: {
-    fontSize: '36px',
+    fontSize: '32px',
     fontWeight: '700',
     color: '#8b5cf6',
     marginBottom: '6px',
@@ -152,7 +161,7 @@ const styles = {
     background: '#13111a',
     border: '1px solid rgba(255,255,255,0.06)',
     borderRadius: '12px',
-    padding: '28px',
+    padding: '24px',
   },
   sectionHeader: {
     display: 'flex',
@@ -211,8 +220,6 @@ const styles = {
     background: 'rgba(255,255,255,0.03)',
     borderRadius: '10px',
     cursor: 'pointer',
-    border: '1px solid transparent',
-    transition: 'border-color 0.2s',
   },
   clientAvatar: {
     width: '40px',
@@ -229,19 +236,27 @@ const styles = {
   },
   clientInfo: {
     flex: 1,
+    minWidth: 0,
   },
   clientName: {
     fontSize: '15px',
     fontWeight: '600',
     color: '#ffffff',
     marginBottom: '3px',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
   },
   clientGoal: {
     fontSize: '13px',
     color: '#6b7280',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
   },
   clientArrow: {
     color: '#4b5563',
     fontSize: '16px',
+    flexShrink: 0,
   },
 }
