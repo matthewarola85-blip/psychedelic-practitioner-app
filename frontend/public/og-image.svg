@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <!-- Background -->
+  <rect width="1200" height="630" fill="#0a0a0f"/>
+  
+  <!-- Subtle grid -->
+  <line x1="0" y1="315" x2="1200" y2="315" stroke="#ffffff" stroke-width="0.5" opacity="0.03"/>
+  <line x1="600" y1="0" x2="600" y2="630" stroke="#ffffff" stroke-width="0.5" opacity="0.03"/>
+
+  <!-- DMT Molecule (left side) -->
+  <!-- Benzene ring -->
+  <line x1="180" y1="220" x2="230" y2="192" stroke="#8b5cf6" stroke-width="5" stroke-linecap="round"/>
+  <line x1="230" y1="192" x2="280" y2="220" stroke="#8b5cf6" stroke-width="5" stroke-linecap="round"/>
+  <line x1="280" y1="220" x2="280" y2="276" stroke="#8b5cf6" stroke-width="5" stroke-linecap="round"/>
+  <line x1="280" y1="276" x2="230" y2="304" stroke="#8b5cf6" stroke-width="5" stroke-linecap="round"/>
+  <line x1="230" y1="304" x2="180" y2="276" stroke="#8b5cf6" stroke-width="5" stroke-linecap="round"/>
+  <line x1="180" y1="276" x2="180" y2="220" stroke="#8b5cf6" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="230" cy="248" r="24" fill="none" stroke="#6d28d9" stroke-width="2.5" opacity="0.6"/>
+
+  <!-- Pyrrole ring -->
+  <line x1="280" y1="220" x2="328" y2="200" stroke="#8b5cf6" stroke-width="5" stroke-linecap="round"/>
+  <line x1="328" y1="200" x2="358" y2="232" stroke="#8b5cf6" stroke-width="5" stroke-linecap="round"/>
+  <line x1="358" y1="232" x2="358" y2="264" stroke="#8b5cf6" stroke-width="5" stroke-linecap="round"/>
+  <line x1="358" y1="264" x2="328" y2="296" stroke="#8b5cf6" stroke-width="5" stroke-linecap="round"/>
+  <line x1="328" y1="296" x2="280" y2="276" stroke="#8b5cf6" stroke-width="5" stroke-linecap="round"/>
+
+  <!-- NH node -->
+  <circle cx="358" cy="248" r="22" fill="#1a0a3d" stroke="#a78bfa" stroke-width="3.5"/>
+  <text x="358" y="254" font-family="-apple-system,sans-serif" font-size="16" font-weight="500" fill="#e8e6f0" text-anchor="middle">NH</text>
+
+  <!-- Side chain -->
+  <line x1="328" y1="200" x2="360" y2="168" stroke="#a78bfa" stroke-width="4" stroke-linecap="round"/>
+  <line x1="360" y1="168" x2="404" y2="180" stroke="#a78bfa" stroke-width="4" stroke-linecap="round"/>
+  <line x1="404" y1="180" x2="440" y2="148" stroke="#a78bfa" stroke-width="4" stroke-linecap="round"/>
+
+  <!-- N node -->
+  <circle cx="440" cy="148" r="22" fill="#1a0a3d" stroke="#a78bfa" stroke-width="3.5"/>
+  <text x="440" y="154" font-family="-apple-system,sans-serif" font-size="16" font-weight="500" fill="#e8e6f0" text-anchor="middle">N</text>
+
+  <!-- Methyl groups -->
+  <line x1="440" y1="148" x2="476" y2="122" stroke="#a78bfa" stroke-width="3" stroke-linecap="round"/>
+  <line x1="440" y1="148" x2="476" y2="174" stroke="#a78bfa" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="488" cy="114" r="14" fill="#2d1b69"/>
+  <circle cx="488" cy="182" r="14" fill="#2d1b69"/>
+
+  <!-- Carbon dots -->
+  <circle cx="280" cy="220" r="6" fill="#8b5cf6"/>
+  <circle cx="280" cy="276" r="6" fill="#8b5cf6"/>
+  <circle cx="328" cy="200" r="6" fill="#a78bfa"/>
+  <circle cx="360" cy="168" r="6" fill="#a78bfa"/>
+  <circle cx="404" cy="180" r="6" fill="#a78bfa"/>
+
+  <!-- Right side - Text content -->
+  <!-- Logo mark -->
+  <text x="580" y="220" font-family="-apple-system,sans-serif" font-size="14" font-weight="400" fill="#8b5cf6" letter-spacing="3">VESSEL</text>
+  
+  <!-- Main headline -->
+  <text x="580" y="290" font-family="-apple-system,sans-serif" font-size="48" font-weight="700" fill="#ffffff" letter-spacing="-1">Treatment</text>
+  <text x="580" y="348" font-family="-apple-system,sans-serif" font-size="48" font-weight="700" fill="#8b5cf6" letter-spacing="-1">Intelligence</text>
+  <text x="580" y="406" font-family="-apple-system,sans-serif" font-size="48" font-weight="700" fill="#ffffff" letter-spacing="-1">for PAT</text>
+
+  <!-- Subheadline -->
+  <text x="580" y="455" font-family="-apple-system,sans-serif" font-size="18" fill="#6b7280">Drug interactions · Dosing · Set &amp; setting · Evidence</text>
+
+  <!-- URL -->
+  <text x="580" y="530" font-family="-apple-system,sans-serif" font-size="16" fill="#4b5563">vesselhealth.io</text>
+
+  <!-- Border accent -->
+  <rect x="0" y="0" width="1200" height="4" fill="#8b5cf6"/>
+</svg>
